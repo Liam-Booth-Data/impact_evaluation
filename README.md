@@ -12,12 +12,11 @@ This deployment has significantly enhanced our teams ability to detect visual er
 Prior to this, we as a team only found out about report visual errors via two ways: naturally working with our reports and discovering a visual error or a visual error being reported by one of the report users.
 However, with the vision model in place, we can now detect these issues alot easier.
 
-The introductory of this model has improved the team's effiency too. As if the model was not in place, then a team member would have to manually go through the reports to discover these visual errors. The benefits have been amplified as of late too, as the number of reports being created by the team has risen sharply. This project has, therefore, led to significant time and resource savings.
-WHERE I GOT UP TO
+Intruducing this model has improved the team's effiency too. As if the model was not in place, then a team member would have to manually go through the reports to discover these visual errors. The benefits have been amplified as of late too, as the number of reports being created by the team has risen sharply. This project has, therefore, led to significant time and resource savings.
 
 ### Negative Impact
 
-While the project has achieved positive outcomes, there has been some challenges with scope creep, resulting in a slower-than-anticipated implementation.
+While the project has achieved positive outcomes, there has been some questions on model accuracy, resulting in the potential of the model missing some visual errors. However I empahsize the word potential, as the probability of this occuring seems very low according to my evaluation on the model.
 As a result, full automation hasn't been achieved yet. 
 Currently, there is a still a manual blocker for capacity updates, although once initiated the task runs in the background.
 
