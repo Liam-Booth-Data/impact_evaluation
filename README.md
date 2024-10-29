@@ -17,17 +17,15 @@ Intruducing this model has improved the team's effiency too. As if the model was
 ### Negative Impact
 
 While the project has achieved positive outcomes, there has been some questions on model accuracy, resulting in the potential of the model missing some visual errors. However I empahsize the word potential, as the probability of this occuring seems very low according to my evaluation on the model.
-As a result, full automation hasn't been achieved yet. 
-Currently, there is a still a manual blocker for capacity updates, although once initiated the task runs in the background.
+So in total the negative impacts of this project have been very little.
 
-Additionally, the user interface of a spreadsheet has some limitations in terms of scalability.
-There is a need for further work to streamline the UI and reduce friction.
-One potential solution being explored is Google AppSheet, which offers a low-code approach and seamless integration with Google Cloud.
-This approach aims to ensure that further technical debt is avoided.(Google AppSheet | Build apps with no code, no date)
+With some data/AI solutions scalability can be an issue but again as I have utilised databricks and can easily scale out the workload across more machines this will no be an issue. Also the retraining process is as simple as adding more data and re-running a notebook, which is simplier than most ai systems which use models.
+
+So overall, the model just needs to be closely monitored during its early phase where it has just been deployed. After this phase, the model is not monitored as closely but if visual errors are found not be picked up by the model, extensive work should be done to understand why not and come up with an fix (i.e. adding more diverse training data to capture more unique conditions, regularize the model to make sure no overfitting is taking place, etc).
 
 ## Conclusion
 
-In conclusion, this data engineering project has had a significant positive impact on our company's capacity management processes, allowing for more frequent and efficient updates. However, it has also highlighted the need for continued improvements in automation and user interface design to fully leverage the project's potential benefits.
+In conclusion, this AI/ML project has had a significant positive impact on our company's reporting standards and the teams effiency, allowing for increased workloads and better handling of a large amount of business reports. Though, it has been noted that if errors are not picked up by the productionised model then extensive work should be put in place to discover why.
 
 ##  Bibliography
 Google AppSheet | Build apps with no code (no date) AppSheet. Available at: https://about.appsheet.com/home/
@@ -80,28 +78,21 @@ ChatGPT (OpenAI) assisted in content restructuring. Available at: https://www.op
 
 # Project Background
 
-A major part of a retail business model is having the correct stock in the right locations
+A big part of a data team within a business is to provide insighful reports company wide.
 
-These stock movements however need to be constrained due to limitations
-of physical space available in a location. We call these capacities,
-historically this process was done by using domain knowledge.
+These reports cover a wide range of topics/data and departments/teams use them for insights, performance evaluation and creating new strategies. These reports we offer to the business are considered as products which we deliver and maintain.
 
-The process for this would involve them drawing out a high-level
-planogram, which is a diagram of the store layout in a manner to best
-maximise sales (Garza, 2020). Once this layout has been drawn up, the
-shelving allocated to each of the categories would be noted in a
-spreadsheet tool which then provided an output of the capacities for
-each category.
+The process for building reports is quite lengthy as we try to follow best standards and clear processes when it comes to creating a new dashboard. To quickly outline the process it usually starts with a get together to understand report requirements with the stakeholders, gathering the data, feeding the data through our custom built data pipelines, dimesnionally modelling (Kimball methodology), creating report measures in DAX and then finally creating the PowerBI report. This project focuses on the latter stage, but probably one of the most important stages too. If there is an visual error on the report, report users are likely to abandon the report very quickly and turn back to other solutions like Excel. Meaning all the hard work which was done previously to get the data into that report, has basically been made pointless. Therefore it is important we are able to identify these visual report errors within PowerBI quickly and get them solved.
 
-As the company has grown, it is no longer feasible to maintain this
-process. To streamline the workflow a new method of calculating these
-capacities was prototyped in an Excel spreadsheet, the logic in the
-spreadsheet has been proven to be sound, but there is a bottleneck in
-this process in that the spreadsheet is resource heavy, and can only be
-used by one member of the team.
+For reference the PowerBI visual error symbol looks like a cross and is what we will be focussing on to identify:
 
-Being a foundational part of the business model, this appears to be a
-good project to convert from a spread mart tool to an ETL pipeline.
+![PowerBI visual error reference](screenshots/powerbi-visual-error.png)
+
+To detect these visual errors it could be taken away as a manual task to do everytime we release an update to our reports, however like I have already mentioned this would make the team more ineffiecent. Also with the increasing number of reports which we have created and now maintain, this manual task would get more inefficient as time went. 
+
+Therefore the automatic system we wanted to put in place was a neural network, like a convulitonal or recurrent neural network (CNN/RNN respectively), which could identify objects. Then with this model I would use transfer learning to modify a specific set of weights to make the model more specific to our use case and data. This model should then be able to identify objects like PowerBI visual errors, graphs, tables and so on. The productionisation of this model would also be a big factor, as the model would need to be easily accessible so that inference (prediction) would be easy. There are several possible ways to do this, but as our current data solution already uses unity catalog within databricks to manage the data at its different stages in the pipeline, I felt it would be best to store the model in unity catalog. This will be discussed more later on.
+
+Reports being one of the most important products we offer as the data team, using AI/ML to ensure their consistency and standards are maintained, was a good use of machine learning.
 
 # Project Summary
 
