@@ -1,18 +1,19 @@
-# Impact Evaluation: Data Engineering Project (2023)
+# Impact Evaluation: Detecting errors within PowerBI reports with computer vision models
 
-This impact evaluation reviews a data engineering project completed earlier in 2023. 
-For publishing purposes, screenshots have been converted to code blocks, and data has been anonymized.
+This impact evaluation reviews a AI/ML project completed recently (October 2024). 
+For publishing purposes, and data has been anonymized.
 
 ## Overview
 
 ### Positive Impact
 
-Since the completion of this project, it has been successfully deployed for use in four different countries. 
-This deployment has significantly enhanced our company's agility when it comes to updating store capacities. 
-Prior to this, capacity updates were limited to quarterly intervals for each region. 
-However, with the new system in place, we can now perform these updates at more frequent intervals.
+Since the completion of this project, it has been successfully deployed for use across all our companies reports. 
+This deployment has significantly enhanced our teams ability to detect visual errors within reports, and therefore benefits the business by providing error-free reports. 
+Prior to this, we as a team only found out about report visual errors via two ways: naturally working with our reports and discovering a visual error or a visual error being reported by one of the report users.
+However, with the vision model in place, we can now detect these issues alot easier.
 
-One notable improvement is the removal of a previously time-consuming manual task, that required a member of the management team to spend approximately half an hour to an hour per update. Even if we conservatively estimate just one update per month for each of the four regions over eight months, the time saved becomes substantial. In total, this translates to 32 instances where the task would have been performed, not accounting for the increased update frequency. The project has, therefore, led to significant time and resource savings.
+The introductory of this model has improved the team's effiency too. As if the model was not in place, then a team member would have to manually go through the reports to discover these visual errors. The benefits have been amplified as of late too, as the number of reports being created by the team has risen sharply. This project has, therefore, led to significant time and resource savings.
+WHERE I GOT UP TO
 
 ### Negative Impact
 
