@@ -194,7 +194,7 @@ The last stage is to use a optimization algorithm like Stochastic Gradient Desce
 
 The gradients of the weights are being multiplied by a learning rate (a hyperparameter) and the result is subtracted from the weight to get the new weight. To quickly mention, picking a good learning rate is highly important. In simple terms, it determines how quickly the learning process will take to reach the best weight value. I like the picture below because I think it desribes the process of what gradient descent is trying to do clearly, along with showing the importance of the learning rate.
 
-![Gradient Descent](screenshots/learning-rate.jpg)
+![Gradient Descent](screenshots/learning-rate.jpeg)
 
 Note that if the algorithim finds the best weight value, the gradient will be 0. If we refer back to the gradient descent equation, we can see that if the gradient of the weight is 0, then nothing will be subtracted away from the optimal weight. However sometimes reaching the optimal weight values isn't feasible or sensible, therefore a maximum number of iterations or/and a smallest step value limit is usually implemented to stop the learning process as we can settle for a very nearly optimized solution.
 
