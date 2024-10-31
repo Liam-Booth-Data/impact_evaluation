@@ -112,13 +112,13 @@ A pre-trained neural network was utilized and transfer learning was carried out 
 
 ## A High Level Look at the Neural Network/Process
 
-A lifecycle approach will be taken to integrate this AI model. Models, like CNN's, need data to be trained on so that their weights within the model can optimized. Therefore, data quality and preparation is key. Depending on what ML model you are using, the required input format for the data can vary significantly. The CNN I am using takes data in various formats, but prefers the COCO dataset style. Once in the required format, the data can be passed into the neural network, where the model will then be trained. After training, I can then use the model for inference on new images to detect objects like errors.
+A lifecycle approach will be taken to integrate this AI model. Models, like CNN's, need data to be trained on so that their weights within the model can optimized. Therefore, data quality and preparation is key. Depending on what ML model you are using, the required input format for the data can vary significantly. The CNN I am using takes data in various formats, but prefers the COCO dataset style. Once in the required format, the data can be passed into the neural network, where the model will then be trained. After training, I can then use the model for inference on new images to detect objects like the error symbol.
 
 From interaction within the data science community, the detectron2 library of models provided by Facebook, was highly recommended for all computer vision tasks. After doing some of my own research about detectron2, I discovered it offered a pre-trained object detection model, that had different variations (the same model but with just more layers), and also offered the oppurtunity of transfer learning the model onto a custom dataset.
 
 After this model had been trained, tested and was ready for production, the model would be made live through Unity Catalog. Unity Catalog is a unified data governance solution provided by Databricks and is something the team is already using for managing its data assets.
 
-In the next section I'll talk about this whole process in a bit depth.
+In the next section I'll talk about this whole process in a bit more depth.
 
 ## A Deeper Dive Into the Neural Network/Process
 
@@ -141,7 +141,7 @@ As already mentioned, the CNN that I would be using for this task required the d
   ]
 ```
 
-This was the first challenge for me as we did not yet have any pictures, let alone the annotations. Therefore the first job was to capture around 100 images of the different reports we had currently, and annotate each of them. A tool called labelme was used for this, and this helped in drawing the bounding boxes around the objects I wanted to capture, label these boxes with their different object names, and lastly export these images and annotations into a COCO format. Below is a picture of essientially what annotations look like visually within a image.
+This was the first challenge for me as we did not yet have any pictures, let alone the annotations. Therefore the first job was to capture around 100 images of the different reports we had currently, and annotate each of them. A tool called labelme was used for this, and this helped in drawing the bounding boxes around the objects I wanted to capture, label these boxes with their different object names, and lastly export these images and annotations into a COCO format. Below is a picture of essentially what annotations look like visually within a image.
 
 ![Annotations example](screenshots/annotations-example.png)
 
@@ -162,7 +162,7 @@ Now that the train and validation datasets had been registered with detectron2 I
 
 ### The CNN model
 
-The convolutional neural network were first introduced by in the late 1980s and early 1990s. They were heavily inspired by the human visual system in the way that visual cortex processes visual information. The main ideas applied to this model were extracting relatively simple features first from an image, like lines etc, to then building on these feautres and extrating more complex features like shapes i.e. a person's face. Below is an diagram of what the CNN's architecture usually looks like:
+The convolutional neural network were first introduced in the late 1980s and early 1990s. It was heavily inspired by the human visual system in the way that the visual cortex processes visual information. The main ideas applied to this model were extracting relatively simple features first from an image, like lines etc, to then building on these feautres and extrating more complex features like shapes i.e. a person's face. Below is an diagram of what the CNN's architecture usually looks like:
 
 ![CNN diagram](screenshots/cnn-diagram.jpeg)
 
@@ -170,7 +170,7 @@ To stick to the key processes within that image, we can see that there is a smal
 
 The pooling layers you can see are there are to reduce the spaital dimensions (height and width) of the feature maps. This prevents the model from overfitting on the training data, and to also improve computational effiency as there is less data to process.
 
-One of the last layers that hasn't been mentioned is the fully connected layer. This layer is more generic and can be seen across most neural networks. This layer has a neuron for each feature passed into it, and the feature is multiplied by a weight and a bias term added. The mathematical equation for this usually looks something like this:
+One of the last layers that hasn't been mentioned is the fully connected (fc) layer. This layer is more generic and can be seen across most neural networks. This layer has a neuron for each feature passed into it, and the feature is multiplied by a weight with a bias term added too. The mathematical equation for this usually looks something like this:
 
 ![CNN diagram](screenshots/fc-neuron-transformation-equation.png)
 
@@ -192,116 +192,24 @@ The last stage is to use a optimization algorithm like Stochastic Gradient Desce
 
 ![Gradient Descent](screenshots/gradient-descent.jpg)
 
-The gradients of the weights are being multiplied by a learning rate (a hyperparameter) and the result is subtracted from the weight to get the new weight. To quickly mention, picking a good learning rate is highly important. In simple terms, it determines how quickly the learning process will take to reach to best weight value. I like the picture below because I think it desribes the process of what gradient descent is trying to do clearer along with the importance of the learning rate.
+The gradients of the weights are being multiplied by a learning rate (a hyperparameter) and the result is subtracted from the weight to get the new weight. To quickly mention, picking a good learning rate is highly important. In simple terms, it determines how quickly the learning process will take to reach the best weight value. I like the picture below because I think it desribes the process of what gradient descent is trying to do clearly, along with showing the importance of the learning rate.
 
 ![Gradient Descent](screenshots/learning-rate.jpg)
 
-Note that if the algorithim finds the best weight value, the gradient will be 0. If we refer back to the gradient descent equation, we can see that if the gradient of the weight is 0, then nothing will be subtracted away from the optimal weight. However sometimes reaching the optimal weight values isn't feasible or sensible, therefore a maximum number of iterations or/and a smallest step value limit is usually implemented to stop the learning process as we can settle for a very nearly optimized soltuion.
+Note that if the algorithim finds the best weight value, the gradient will be 0. If we refer back to the gradient descent equation, we can see that if the gradient of the weight is 0, then nothing will be subtracted away from the optimal weight. However sometimes reaching the optimal weight values isn't feasible or sensible, therefore a maximum number of iterations or/and a smallest step value limit is usually implemented to stop the learning process as we can settle for a very nearly optimized solution.
 
+This goes over the important concepts and the training process of the CNN model.
 
+### Model Storing and Accessibility
 
+After the model had been trained and was performing well at identifying objects within reports, the next stage is to store that newly trained model and it's weights whilst making sure it is easily accessible for future predictions. This is important as if the model is not accessible then how are we meant to use this model as part of our processes.
 
-The variables that are being ingested are across three tabs within a
-workbook container, once these have been brought into BigQuery, we can
-combine them with application generated data to apply business logic.
+Therefore I looked at storing the model within Unity Catalog. The benefits of storing the model in UC are many, for example the model is accessible by any of the team with simple calls to it by just using the models file path. Unity Catalog also handles model versioning. So whenever someone re-trains the CNN object detection model, UC realizes that there is already a current model version and therefore adds a new version. This opens the door to comparing models' performances. For instance if there are two versions of a model, I could load the different versions and get performance metrics from both on a test set. From here, I would have the information required to understand which model performed better and which one I should use going forward in production.
 
-The initial tab contains columns specifying attribute names in both a
-user and machine-readable format, assigned values, and finally a data
-type.
+# How the process was implemented
 
-| friendly_name       | attribute                   | value | attribute_type |
-|---------------------|-----------------------------|-------|----------------|
-| Size Weighting      | size_weighting_percentage   |       | percentage     |
-| Sales Weighting     | sales_weighting_percentage  |       | percentage     |
-| x Shelf Threshold   | x_shelf_threshold_number    |       | number         |
-| x Percentage Normal | x_target_percentage         |       | percentage     |
-| Cap Buffer          | capacity_buffer_percentage  |       | percentage     |
-| Min cap             | minimum_capacity_percentage |       | percentage     |
-| Max cap             | maximum_capacity_percentage |       | percentage     |
+## Implementing this into databricks
 
-The second tab contains a list of branch names, totals for the cabinet
-meterage and shelving counts, and a flag for if sales data should be
-considered when calculating the output for that branch.
-
-| branch | cabinet_meterage | shelf_count | treat_as_new |
-|--------|------------------|-------------|--------------|
-| A      | 11.04            | 203         | FALSE        |
-| B      | 9.08             | 251         | FALSE        |
-| C      | 6.32             | 245         | TRUE         |
-| D      | 9.08             | 264         | FALSE        |
-| E      | 11.84            | 630         | FALSE        |
-
-The third tab contains product categories, additional grouping
-information for filtering, and columns for dictating business logic. Of
-the two business logic columns only category location is used within
-this pipeline, to act as a predicate when applying the logic.
-
-| category    | category_grouping | supercat   | spine_type | category_location |
-|-------------|-------------------|------------|------------|-------------------|
-| Category 1  |                   | Supercat 1 |            | cabinet           |
-| Category 2  |                   | Supercat 1 |            | cabinet           |
-| Category 3  |                   | Supercat 2 |            | cabinet           |
-| Category 4  |                   | Supercat 3 |            | cabinet           |
-| Category 5  |                   | Supercat 2 |            | cabinet           |
-| Category 6  |                   | Supercat 1 |            | cabinet           |
-| Category 7  |                   | Supercat 1 | 1          | floor             |
-| Category 8  |                   | Supercat 4 | 1          | floor             |
-| Category 9  |                   | Supercat 1 | 1          | floor             |
-| Category 10 |                   | Supercat 4 | 2          | floor             |
-| Category 11 |                   | Supercat 5 |            | NA                |
-
-To bring these into BigQuery, they will be linked as external data
-sources. The data type for all columns will be set as string, this is
-due to the mixed types on the initial tab, and user input data with
-limited validation rules.
-
-These are brought into BigQuery using DDL create the external table
-references.
-
-```sql
-CREATE EXTERNAL TABLE `autocaps.gsheet_controls`
-(
-    friendly_name STRING,
-    attribute STRING,
-    value STRING,
-    attribute_type STRING
-    )
-OPTIONS(
-    sheet_range="controls",
-    skip_leading_rows=1,
-    format="GOOGLE_SHEETS",
-    uris=["https://docs.google.com/spreadsheets/d/[sheet_key]/"]  
-    )
-```
-
-Once the links have been established for all tabs within the workbook,
-the data can be queried just like a native table.
-
-#### Transforming the Controls
-
-A view is created over the top of the controls table to transform the
-values for use in later stages.
-
-Rows specified as having an attribute type of percentage is reduced down
-to a decimal form. Dates are parsed from DD/MM/YYYY to standardised
-format of YYYY-MM-DD (*ISO - ISO 8601 --- Date and time format*, no
-date).
-
-```sql
-with
-    input_parameters as (
-        select attribute,
-        case lower(attribute_type)
-            when "percentage"
-                then cast(cast(value as numeric)/100 as string)
-            when "date"
-                then cast(parse_date('%d/%m/%Y',value) as string)
-            else value
-        end as value
-        )
-
-select * from input_parameters
-```
 
 ### Preparing the Branches Import
 
