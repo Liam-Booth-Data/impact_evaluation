@@ -12,7 +12,7 @@ This deployment has significantly enhanced our teams ability to detect visual er
 Prior to this, we as a team only found out about report visual errors via two ways: naturally working with our reports and discovering a visual error or a visual error being reported by one of the report users.
 However, with the vision model in place, we can now detect these issues alot easier.
 
-Intruducing this model has improved the team's effiency too. As if the model was not in place, then a team member would have to manually go through the reports to discover these visual errors. The benefits have been amplified as of late too, as the number of reports being created by the team has risen sharply. This project has, therefore, led to significant time and resource savings.
+Introducing this model has improved the team's effiency too. As if the model was not in place, then a team member would have to manually go through the reports to discover these visual errors. The benefits have been amplified as of late too, as the number of reports being created by the team has risen sharply. This project has, therefore, led to significant time and resource savings.
 
 ### Negative Impact
 
@@ -82,132 +82,124 @@ A big part of a data team within a business is to provide insighful reports comp
 
 These reports cover a wide range of topics/data and departments/teams use them for insights, performance evaluation and creating new strategies. These reports we offer to the business are considered as products which we deliver and maintain.
 
-The process for building reports is quite lengthy as we try to follow best standards and clear processes when it comes to creating a new dashboard. To quickly outline the process it usually starts with a get together to understand report requirements with the stakeholders, gathering the data, feeding the data through our custom built data pipelines, dimesnionally modelling (Kimball methodology), creating report measures in DAX and then finally creating the PowerBI report. This project focuses on the latter stage, but probably one of the most important stages too. If there is an visual error on the report, report users are likely to abandon the report very quickly and turn back to other solutions like Excel. Meaning all the hard work which was done previously to get the data into that report, has basically been made pointless. Therefore it is important we are able to identify these visual report errors within PowerBI quickly and get them solved.
+The process for building reports is quite lengthy as we try to follow best standards and clear processes when it comes to creating a new dashboard. To quickly outline the process it usually starts with a get together to understand report requirements with the stakeholders, gathering the data, feeding the data through our custom built data pipelines, dimensional modelling (Kimball methodology), creating report measures in DAX and then finally creating the PowerBI report. This project focuses on the latter stage, but probably one of the most important stages too. If there is an visual error on the report, report users are likely to abandon the report very quickly and turn back to other solutions like Excel. Meaning all the hard work which was done previously to get the data into that report, has basically been made pointless. Therefore it is important we are able to identify these visual report errors within PowerBI quickly and get them solved.
 
 For reference the PowerBI visual error symbol looks like a cross and is what we will be focussing on to identify:
 
 ![PowerBI visual error reference](screenshots/powerbi-visual-error.png)
 
-To detect these visual errors it could be taken away as a manual task to do everytime we release an update to our reports, however like I have already mentioned this would make the team more ineffiecent. Also with the increasing number of reports which we have created and now maintain, this manual task would get more inefficient as time went. 
+To detect these visual errors it could be taken away as a manual task to do everytime we release an update to our reports, however like I have already mentioned this would make the team more ineffiecent. Also with the increasing number of reports which we have created and now maintain, this manual task would keep getting more inefficient as time went. 
 
 Therefore the automatic system we wanted to put in place was a neural network, like a convulitonal or recurrent neural network (CNN/RNN respectively), which could identify objects. Then with this model I would use transfer learning to modify a specific set of weights to make the model more specific to our use case and data. This model should then be able to identify objects like PowerBI visual errors, graphs, tables and so on. The productionisation of this model would also be a big factor, as the model would need to be easily accessible so that inference (prediction) would be easy. There are several possible ways to do this, but as our current data solution already uses unity catalog within databricks to manage the data at its different stages in the pipeline, I felt it would be best to store the model in unity catalog. This will be discussed more later on.
 
-Reports being one of the most important products we offer as the data team, using AI/ML to ensure their consistency and standards are maintained, was a good use of machine learning.
+So overall as reports are one of the most important products we offer as the data team, using AI/ML to ensure their consistency and standards are maintained, was a good use of machine learning.
 
 # Project Summary
 
 ## Issue at Hand
 
-Updating capacities using the newer logic was heavily reliant on one
-team member, meaning that the frequency in which they were updated
-wasn't as high as it could be. The strain on this team member will only
-increase as the process is rolled out to further regions.
+Identifying visual errors within PowerBI reports as they can quickly put end users off the reports. It isn't sensible to do this as a manual task with the growing number of reports.
 
 ## Solution
 
-The process should be moved from the Excel tool to a cloud based
-solution, allowing for anyone within the team to update the input
-parameters, then request an ingestion of the output into the application
-database.
+Use a neural network like a CNN to pick up these PowerBI visual errors.
 
 ## Outcome
 
-A pipeline was created that efficiently implements the proposed
-solution, for the primary region where the company trades. Data has been
-validated against the existing tool to be accurate.
+A pre-trained neural network was utilized and transfer learning was carried out to make the model more specific to our objects. In the end, I had an accurate model which was easily accessible and could identify errors within PowerBI.
 
-# Pipeline Overview
+# Neural Network/Process Overview
 
-## A High Level Look at the Pipeline
+## A High Level Look at the Neural Network/Process
 
-A lifecycle approach will be taken to build the pipeline. This starts by
-getting the data from the sources and ingesting it, from there it will
-be transformed before going onto the final steps where the results are
-used to inform business decisions.
+A lifecycle approach will be taken to integrate this AI model. Models, like CNN's, need data to be trained on so that their weights within the model can optimized. Therefore, data quality and preparation is key. Depending on what ML model you are using, the required input format for the data can vary significantly. The CNN I am using takes data in various formats, but prefers the COCO dataset style. Once in the required format, the data can be passed into the neural network, where the model will then be trained. After training, I can then use the model for inference on new images to detect objects like errors.
 
-![Graphical user interface, diagram, application Description
-automatically generated](media/image1.png)
+From interaction within the data science community, the detectron2 library of models provided by Facebook, was highly recommended for all computer vision tasks. After doing some of my own research about detectron2, I discovered it offered a pre-trained object detection model, that had different variations (the same model but with just more layers), and also offered the oppurtunity of transfer learning the model onto a custom dataset.
 
-(*2. The Data Engineering Lifecycle*, no date)
+After this model had been trained, tested and was ready for production, the model would be made live through Unity Catalog. Unity Catalog is a unified data governance solution provided by Databricks and is something the team is already using for managing its data assets.
 
-The existing tooling has user inputs inside a spreadsheet for
+In the next section I'll talk about this whole process in a bit depth.
 
--   Total physical space available per location
+## A Deeper Dive Into the Neural Network/Process
 
--   An array of parameters for tweaking the outputs
+### Data Prepartion
 
-The physical space available is then combined with transactional data to
-generate the capacity outputs.
+As already mentioned, the CNN that I would be using for this task required the data to be in a COCO (Common Objects in Context) dataset format. This format is a json file, but is widely used for computer vision tasks (especially object detection). This is because this format stores the different object names, and annotations for each image. Annotations are basically boxes around the different objects which highlights the object and its name. Below is a quick generic example of what these annotations sections look like within the json file.
 
-The transactional data is imported into the existing tool via an OLAP
-cube, which contains precalculated data designed to allow for historical
-analysis (*The Rise and Fall of the OLAP Cube*, 2020). The underlying
-tables are stored in a star schema, where the data is denormalized and
-stored according to the data type.
+```python
 
-The star schema approach classifies the tables within a model as either
-a fact or a dimension (Sanchez-Ayala, 2020).
+"annotations": [
+    {
+      "id": 1,
+      "image_id": 1,
+      "category_id": 1,
+      "bbox": [100, 200, 50, 50],
+      "segmentation": [[100, 200, 150, 200, 150, 250, 100, 250]],
+      "area": 2500,
+      "iscrowd": 0
+    }
+  ]
+```
 
-Dimension tables contain categorical data (e.g. products, locations, or
-dates), there could be multiple dimension tables linked to a single fact
-table.
+This was the first challenge for me as we did not yet have any pictures, let alone the annotations. Therefore the first job was to capture around 100 images of the different reports we had currently, and annotate each of them. A tool called labelme was used for this, and this helped in drawing the bounding boxes around the objects I wanted to capture, label these boxes with their different object names, and lastly export these images and annotations into a COCO format. Below is a picture of essientially what annotations look like visually within a image.
 
-Fact tables contain quantitative data relating to business processes
-(e.g. quantity and value of units sold, or on hand), a fact table will
-typically contain foreign keys that relate to the dimensional tables.
+![Annotations example](screenshots/annotations-example.png)
 
-A basic overview of the pipeline would be.
+To note: variation of the images used in training any visual model is an important factor, and that is why techniques like augmentation exist which adds this variation for you. This technique can flip images, change colours, add bluriness just to name a few things. Augmentation was something that the CNN within detectron2 already did, so wasn't something I needed to worry about in this project.
 
-![Basic ETL diagram. ](media/image2.png)
+The final stage of the data preparation section is to register the dataset with detectron2. This isn't like registering an account etc, but more telling detectron2 how to access your dataset so that it can be used for training and validation. This was accomplished with the following code, in databricks:
 
-To keep permissions simple the pipeline will be contained within GCP, a
-cloud computing platform (*Cloud Computing Services*, no date), and
-Google Workspace which is a set of productivity tools designed to
-enhance collaboration offered by Google (*Announcing Google Workspace,
-everything you need to get it done, in one location*, no date).
+```python
+from detectron2.data.datasets import register_coco_instances
+register_coco_instances("my_dataset_train", {}, "/Volumes/dev_core_100_landing/_volumes/root/ml-testing/powerbi-report-error-detection/train/annotations/train.json", "/Volumes/dev_core_100_landing/_volumes/root/ml-testing/powerbi-report-error-detection/train/images")
 
-The transactional data required is held within BigQuery, a scalable data
-warehouse solution provided by Google (*What is BigQuery?*, no date).
-BigQuery has a feature called "External Data Sources" which will allow
-us to join our fairly static transactional data with the variable user
-inputs in the Google Sheet without having to create a GUI for this
-process (*Introduction to external data sources \| BigQuery \| Google
-Cloud*, no date).
+register_coco_instances("my_dataset_val", {}, "/Volumes/dev_core_100_landing/_volumes/root/ml-testing/powerbi-report-error-detection/train/annotations/val.json", "/Volumes/dev_core_100_landing/_volumes/root/ml-testing/powerbi-report-error-detection/train/images")
+```
 
-## A Deeper Dive Into the Pipeline
+The code above registers the COCO datasets with detectron2. The register_coco_instances function takes in the following as parameters: the dataset name, COCO dataset json file path, the file path to the images.
 
-### Desired Output Structure
+Now that the train and validation datasets had been registered with detectron2 I will now talk about the Neural Network model in a bit more depth.
 
-The final output is heavily based on the outputs of the existing
-tooling, some extra columns will be added as foreign keys for ease of
-importing the data back into the application database.
+### The CNN model
 
-| Output Column              | Source Type      | Source Table(s)                                                   | Noteable Column(s)                    |
-|----------------------------|------------------|-------------------------------------------------------------------|---------------------------------------|
-| branchkey                  | Application Data | branches                                                          | branchkey                             |
-| branchid                   | Application Data | branches                                                          | branchid                              |
-| branch                     | Application Data | branches                                                          | branch_name                           |
-| cabinet_meterage           | User Input       | gsheet_branches                                                   | cabinet_meterage                      |
-| shop_floor_shelf_count     | User Input       | gsheet_branches                                                   | shop_floor_shelf_count                |
-| treat as new               | User Input       | gsheet_branches                                                   | treat as new                          |
-| cabinet_multiplier         | Calculated       | gsheet_branches                                                   | cabinet_meterage                      |
-| media_multiplier           | Calculated       | gsheet_branches                                                   | shop_floor shelf_count                |
-| category_id                | Application Data | category                                                          | category_id                           |
-| box_category               | Application Data | category                                                          | box_category                          |
-| category_location          | User Input       | gsheet_category_types                                             | category_location                     |
-| total stock                | Calculated       | aio_fact                                                          | quantity                              |
-| average_stock_per_location | Calculated       | aio_fact, gsheet_branches                                         | quantity                              |
-| minimum_capacity           | Calculated       | aio_fact, gsheet_branches, gsheet_controls                        | quantity, minimum_capacity_percentage |
-| maximum_capacity           | Calculated       | aio_fact, gsheet_branches, gsheet_controls                        | quantity, maximum_capacity_percentage |
-| capacity_ratio             | Calculated       | aio_fact, gsheet_branches, gsheet_controls, gsheet_category_types |                                       |
-| raw cap                    | Calculated       | aio_fact, gsheet_branches, gsheet_controls, gsheet_category_types |                                       |
-| new_capacity               | Calculated       | aio_fact, gsheet_branches, gsheet_controls, gsheet_category_types |                                       |
+The convolutional neural network were first introduced by in the late 1980s and early 1990s. They were heavily inspired by the human visual system in the way that visual cortex processes visual information. The main ideas applied to this model were extracting relatively simple features first from an image, like lines etc, to then building on these feautres and extrating more complex features like shapes i.e. a person's face. Below is an diagram of what the CNN's architecture usually looks like:
 
-### Ingesting Data from Google Sheets
+![CNN diagram](screenshots/cnn-diagram.jpeg)
 
-Google Sheets will be used as a storage location for user inputs, this
-was picked as spreadsheet like software is ubiquitous in the business
-world.
+To stick to the key processes within that image, we can see that there is a small grey dotted-line box within each layer. This box is called a kernel (or filter) and is used within each layer of the network to detect the features (like the edges, textures, patterns). This kernel slides over the images and produces feature maps that contain the information of the features within the image. Feature maps are usually passed into the next layer so that they can be filtered by a kernel again to extract more complex feautres.
+
+The pooling layers you can see are there are to reduce the spaital dimensions (height and width) of the feature maps. This prevents the model from overfitting on the training data, and to also improve computational effiency as there is less data to process.
+
+One of the last layers that hasn't been mentioned is the fully connected layer. This layer is more generic and can be seen across most neural networks. This layer has a neuron for each feature passed into it, and the feature is multiplied by a weight and a bias term added. The mathematical equation for this usually looks something like this:
+
+![CNN diagram](screenshots/fc-neuron-transformation-equation.png)
+
+Then lastly the output layer. As an example, this layer usually has as many neurons as there are classes in a classifcation task i.e. zebra, dog, cat; there would be 3 neurons. Then within each of these neurons they hold the probability of the image belonging to that class. In our case, for example it could be 0.2 (20%) for graph, 0.01 for table, 0.7 for error and 0.09 for title.
+
+Those are the key components within the CNN diagram. I will now quickly talk about how this model would usually work during training.
+
+So an image would be passed into the model, and to start off with all feature map values, weight matrices and bias terms would be initialized with random values (however usually 0 to speed up training). The image would be put through each layer with the respective actions and calculations taking place, that have already been mentioned. This is called a forward pass.
+
+To then calculate how well this model has done at predicting the objects within the image, the loss of the model is calculated. This is done by using a loss function (i.e. cross-entropy loss is usually used for classification) which measures how far the networks predictions are from the actual labels.
+
+After the loss has then been calculated, it is used in a backward pass of the model (backpropagation). This is where partial derivatives and the chain rule come into play. The chain rule is then used to calculate the partial derivatives (gradient) of the loss with respect to each of the weights within each layer. Below is an equation of this process:
+
+![Chain rule](screenshots/chain-rule.png)
+
+The output here is the gradients for each weight, which indicates how much each weight contributed to the total error.
+
+The last stage is to use a optimization algorithm like Stochastic Gradient Descent (SGD), to update the weights using the gradients of each weight we just calculated. The equation for this process is below:
+
+![Gradient Descent](screenshots/gradient-descent.jpg)
+
+The gradients of the weights are being multiplied by a learning rate (a hyperparameter) and the result is subtracted from the weight to get the new weight. To quickly mention, picking a good learning rate is highly important. In simple terms, it determines how quickly the learning process will take to reach to best weight value. I like the picture below because I think it desribes the process of what gradient descent is trying to do clearer along with the importance of the learning rate.
+
+![Gradient Descent](screenshots/learning-rate.jpg)
+
+Note that if the algorithim finds the best weight value, the gradient will be 0. If we refer back to the gradient descent equation, we can see that if the gradient of the weight is 0, then nothing will be subtracted away from the optimal weight. However sometimes reaching the optimal weight values isn't feasible or sensible, therefore a maximum number of iterations or/and a smallest step value limit is usually implemented to stop the learning process as we can settle for a very nearly optimized soltuion.
+
+
+
 
 The variables that are being ingested are across three tabs within a
 workbook container, once these have been brought into BigQuery, we can
