@@ -204,12 +204,60 @@ This goes over the important concepts and the training process of the CNN model.
 
 After the model had been trained and was performing well at identifying objects within reports, the next stage is to store that newly trained model and it's weights whilst making sure it is easily accessible for future predictions. This is important as if the model is not accessible then how are we meant to use this model as part of our processes.
 
-Therefore I looked at storing the model within Unity Catalog. The benefits of storing the model in UC are many, for example the model is accessible by any of the team with simple calls to it by just using the models file path. Unity Catalog also handles model versioning. So whenever someone re-trains the CNN object detection model, UC realizes that there is already a current model version and therefore adds a new version. This opens the door to comparing models' performances. For instance if there are two versions of a model, I could load the different versions and get performance metrics from both on a test set. From here, I would have the information required to understand which model performed better and which one I should use going forward in production.
+Therefore I looked at storing the model within Unity Catalog. The benefits of storing the model in UC are many, for example the model is accessible by any of the team with simple calls to it by just using the models file path. Also as the models are registered into Unity Catalog with MLflow, model versioning is handled for you.
+
+For reference, MLflow is a tool used for managing the machine learning lifecycle and is integrated directly into databricks. It offers handy features like experimentation tracking, model management and deployment.
+
+To continue, whenever someone re-trains the CNN object detection model, MLflow realizes that there is already a current model version and therefore adds a new version into UC. This opens the door to comparing models' performances. For instance if there are two versions of a model, I could load the different versions and get performance metrics from both on a test set. From here, I would have the information required to understand which model performed better and which one I should use going forward in production.
 
 # How the process was implemented
 
 ## Implementing this into databricks
 
+Now that the process and inner workings have been discussed, I will talk about how this process was actually implemented within databricks. I have already mentioned how the datasets were registered with detectron2 so I will skip over this part, but I will begin at the model training process.
+
+As I planned to store the model in unity catalog I first configured MLflow to use Unity Catalog for model registry operations.
+
+```python
+
+import mlflow
+mlflow.set_registry_uri("databricks-uc")
+
+MODEL_NAME = "dev_core_500_semantic.ml_model.detectron2_report_errors"
+```
+
+As I have already mentioned MLflow is helpful for experimentation tracking therefore I thought it'd be a waste not to use some of those capabilites. So I added the following code in to log the loss and validation loss. The detectron2 library is setup so that classes are used for training (DefaultTrainer). So to log loss you have to create your own hook classes that inherit of the HookBase class. The key parts to look at in the code belwo are the `mlflow.log_metric("loss", total_loss, step=iteration)` and `mlflow.log_metric("val_AP", val_ap, step=iteration)`. These both the loss and validation average precision respectively, to the MLflow experimentation run.
+
+```python
+
+class MLflowLoggerHook(HookBase);
+    def __init__(self):
+        super().__init__()
+
+    def after_step(self):
+        loss_dict = self.trainer.storage.latest()
+        total_loss = loss_dict["total_loss"]
+        total_loss = total_loss[0]
+        iteration = self.trainer.iter
+        if iteration > 0:
+            mlflow.log_metric("loss", total_loss, step-iteration)
+
+class ValidationLossHook(HookBase):
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+
+    def after_step(self):
+        if self.trainer.iter % self.trainer.cfg.TEST.EVAL_PERIOD == 0:
+            evaluator = COCOEvaluator("my_dataset_val", self.cfg, False, output_dir="./output/")
+            val_loader = build_detection_test_loader(self.cfg, "my_dataset_val")
+            results = inference_on_dataset(self.trainer.model, val_loader, evaluator)
+            print(f"RESULTS IS THE FOLLOWING: {results}")
+
+            bbox_metrics = results["bbox"]
+            val_ap = bbox_metrics["AP"]
+            mlflow.log_metrics("val_AP", val_ap, step=self.trainer.iter)
+```
 
 ### Preparing the Branches Import
 
