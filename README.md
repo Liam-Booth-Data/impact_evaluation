@@ -227,7 +227,7 @@ MODEL_NAME = "dev_core_500_semantic.ml_model.detectron2_report_errors"
 
 The MODEL_NAME is also an important variable here. This variable will be used without as it tells databricks where I want to store my model and in future what model I want to use. Unity Catalog uses catalogs, schemas and lots of other things and you can read the MODEL_NAME file path as `catalog.schema.model_name`.
 
-The next step was to train the model. MLflow is helpful for experimentation tracking during training, therefore I thought it'd be a waste not to use some of those capabilites here. So I added the following code in to log the loss and validation loss. The detectron2 library is setup so that classes are used for training (DefaultTrainer). So to log loss you have to create your own hook classes that inherit of the HookBase class. The key parts to look at in the code belwo are the `mlflow.log_metric("loss", total_loss, step=iteration)` and `mlflow.log_metric("val_AP", val_ap, step=iteration)`. These both log the loss and validation average precision respectively, to the MLflow experimentation run.
+The next step was to train the model. MLflow is helpful for experimentation tracking during training, therefore I thought it'd be a waste not to use some of those capabilites here. So I added the following code in to log the loss and validation loss. The detectron2 library is setup so that classes are used for training (DefaultTrainer). So to log loss you have to create your own hook classes that inherit of the HookBase class. The key parts to look at in the code below are the `mlflow.log_metric("loss", total_loss, step=iteration)` and `mlflow.log_metric("val_AP", val_ap, step=iteration)`. These both log the loss and validation average precision respectively, to the MLflow experimentation run.
 
 ```python
 class MLflowLoggerHook(HookBase);
@@ -259,7 +259,7 @@ class ValidationLossHook(HookBase):
             mlflow.log_metrics("val_AP", val_ap, step=self.trainer.iter)
 ```
 
-For the actually training part, databricks offers some nice functions like `mlflow.pytorch.log_model(` & `mlflow.pytorch.log_model(`, which stores the model in MLflow. But my case I will be using this function to store the model in Unity Catalog. For example:
+For the actually training part, databricks offers some nice functions like `mlflow.pytorch.log_model(` & `mlflow.pytorch.log_model(`, which stores the model in MLflow. But in my case I will be using this function to store the model in Unity Catalog. For example:
 
 ```python
     mlflow.tensorflow.log_model(
@@ -328,10 +328,10 @@ def train_and_register_detectron2_model():
 train_and_register_detectron2_model()
 ```
 
-The first important line in the preceding code is: `with mlflow.start_run() as run:`. This is important as it creates a new run within the experiment, and allows for metrics to be logged etc. All the cfg elements below this line belong directly to the detectron2 library. Here, `cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))` I'm loading the backbone of the model, and this saves a lot of time when it comes to setting up the model architecture and how a image will actually move through the network. To note RCNN stands for: Region-based Convolutional Neural Network. The next important line is: `cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")`. This is important as it loads the weights for the model backbone I just loaded, and these weights come from the pre-trained model. This again saves us a lot of time and compute, because to obtain these weights I would have to train the model on a set of very powerful GPUs, for a very long time. This is where transfer learning shines as I can now just use these weights from the pre-trained model, and just change a few to make model more specific to my object detection task. The next important lines are hyperparameters. Hyperparameters are model settings that are set my the machine learning practioner and are not optimized by the model during the training process. The first hyperparameter is the learning rate, `cfg.SOLVER.BASE_LR`, which I have already mentioned in the gradient descent algorithm therefore I will not repeat the importance of it. The value of 0.00025 for the LR, is the default the detectron2 recommends. The next hyperparameter is the maximum number of iterations: `cfg.SOLVER.MAX_ITER = 300`. This limits the model on how many epochs (runs through the data) the model can do. This can help massively in situations where your model starts to overfit your training data or where your model is has already converged (stabilized) but is still trying to find the best, most optimal weights possible which isn't feasible or sensible. The code lines after these are just for kicking the training off and setting up the details required for the model to be able to be stored within Unity Catalog.
+The first important line in the preceding code is: `with mlflow.start_run() as run:`. This is important as it creates a new run within the experiment, and allows for metrics to be logged etc. All the cfg elements below this line belong directly to the detectron2 library. Here, `cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))` I'm loading the backbone of the model, and this saves a lot of time when it comes to setting up the model architecture and how a image will actually move through the network. To note RCNN stands for: Region-based Convolutional Neural Network. The next important line is: `cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")`. This is important as it loads the weights for the model backbone I just loaded, and these weights come from the pre-trained model. This again saves us a lot of time and compute, because to obtain these weights I would have to train the model on a set of very powerful GPUs, for a very long time. This is where transfer learning shines as I can now just use these weights from the pre-trained model, and just change a few to make model more specific to my object detection task. The next important lines are hyperparameters. Hyperparameters are model settings that are set by the machine learning practioner and are not optimized by the model during the training process. The first hyperparameter is the learning rate, `cfg.SOLVER.BASE_LR`, which I have already mentioned in the gradient descent algorithm therefore I will not repeat the importance of it. The value of 0.00025 for the LR, is the default the detectron2 recommends. The next hyperparameter is the maximum number of iterations: `cfg.SOLVER.MAX_ITER = 300`. This limits the model on how many epochs (runs through the data) the model can do. This can help massively in situations where your model starts to overfit your training data or where your model has already converged (stabilized) but is still trying to find the best, most optimal weights possible which isn't feasible or sensible. The code lines after these are just for kicking the training off and setting up the details required for the model to be able to be stored within Unity Catalog.
 
 
-## Evaluating the model outputs and doing inference
+## Evaluating the model outputs
 
 In the preceding section, I talked about how the model was trained. Here in this section I will talk about how the model was evaluated and used in for prediction (inference). So after a model has finished training its run is logged into the experiment is was apart of, within the MLflow section in databricks. This looks like the following:
 
@@ -341,72 +341,73 @@ Here you can see the different metrics in a line graph plotted against the numbe
 
 ![Learning Curve Graph](screenshots/cbb214f8.png)
 
-In the above graph we can see that the model likely converged during training. This means that if I was to continue training the model not a lot of benefit would be seen in terms of error decreased. However it also shows that the model heavily overfit the training data. This is because as the error kept decreasing on the training data, it did not for the validation data. This means that the model started to overfit to the training data. With this model we would expect to get a really low performance scores a test set, due to it's poor generalization (high variance) that has been created during training.
+In the above graph we can see that the model likely converged during training. This means that if I was to continue training the model not a lot of benefit would be seen in terms of error decreased. However it also shows that the model heavily overfit the training data. This is because as the error kept decreasing on the training data, it did not for the validation data. This means that the model started to overfit to the training data. With this model we would expect to get a really low performance scores a test set, due to it's poor generalization (high variance) that has been created during training. But models can not only overfit, but also underfit which is sometimes known as high bias. Underfitting is where the model is not able to really learn anything from the training data that will help it to make accurate predictions on unseen data. It should be noted here that you cannot have a model with really low bias and really low variance as they both have contradicatory objectives. One is trying to get really accurate predictions on the training data (leading it to overfit to the training data), and the other is trying to make the model more generalizable (leading it to underfit to the training data). This balance and trade-off between the two is formally known as the bias-variance tradeoff.
 
 The next important output of the training process, is the storing of the model within Unity Catalog. In the picture below we can see how when the training process is rerun, MLflow just adds another verion to that model.
 
 ![UC Model](screenshots/uc-model.png)
 
+This will allow for comparisons of different versions of the same model in the future, whereby we are trying to improve the current model.
+
+## Using the model for inference
+
+As the model has been trained and it's training performance evaluated I can make predictions on unseen images of reports. This will also allow for testing to see how the model performs when it comes to making predictions on unseen data.
+
+There are several ways to load the newly trained model with either Unity Catalog or directly from the experiment run. In this write-up I will just load the model directly from the artifacts section within the experiment run. This arifacts section holds all the data required to set up the model within any environment, but I am just interested in loading the models pytorch file that has the file type of `.pth`.
+
+```python
+
+# reinstializing cfg, as inference may be done seperately
+cfg = get_cfg()
+cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
+cfg.DATASETS.TRAIN = ("my_dataset_train",)
+cfg.DATASETS.TEST = ()
+cfg.DATALOADER.NUM_WORKERS = 2
+cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
+cfg.SOLVER.IMS_PER_BATCH = 2
+cfg.SOLVER.BASE_LR = 0.00025
+cfg.SOLVER.MAX_ITER = 300
+cfg.SOLVER.STEPS = [] 
+cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
+cfg.MODEL.ROI_HEADS.NUM_CLASSES = 5
+cfg.MODEL.DEVICE = "cpu"
+
+cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "/output/model_final.pth")  # path to the model we just trained
+cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7   # set a custom testing threshold
+predictor = DefaultPredictor(cfg)
+```
+{UPDATE THE PATH FOR THE MODEL WEIGHTS AS THAT IS OUT OF DATE}
+
+The main takeaways from the above code are the reinitilization of the cfg object, the loading of the model weights and setting a custom threshold. The cfg object is reinitialized with the same model backbone here as this cell maybe be run independently within this notebook therefore I want to make sure no errors appear due to no initialization of the cfg object. The setting of the model weights is also important as these weights contain some which have been opitimized during the training process for this specific object detection task. The weights are all stored within the .pth file. Lastly, the setting of the custom threshold is important as if there was no threshold then we would see a lot more preditions of where the model thought objects would be within the image. However these predictions would have a small probability of being true, therefore I just want to focus on the predictions which the model is pretty confident in. That is why the threshold is set to 70%.
+
+Next I loaded in the first image to carry out predictions on and this was done like so:
+
+```python
+image_path = "/Workspace/Users/tt/workspace-data/02.png"
+image = cv2.imread(image_path)
+```
+
+Then the predictions were carried out with `outputs = predictor(image)`. To now visualize these predictions so it is easier to make sense of them, I did the following:
+
+```python
+v = Visualizer(image[:, :, ::-1], metadata=MetadataCatalog.get("my_dataset_train"), scale=0.5)
+out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+output_image = out.get_image()[:, :, ::-1]
+
+plt.figure(figsize=(20, 20))
+plt.imshow(output_image)
+plt.axis('off')
+plt.show()
+```
+
+And the output of this was the following:
 
 
 
-The data is first imported to Excel using the get data from other
-workbook feature of Power Query
 
-| Branch | Category 1 | Category 2 | Category 3 |
-|--------|------------|------------|------------|
-| A      | 2          | 5          | 59         |
-| B      | 2          | 4          | 45         |
-| C      | 2          | 3          | 37         |
-| D      | 2          | 5          | 42         |
-| E      | 2          | 2          | 37         |
 
-The data is in a pivot format, to be able to compare this to the results
-being retrieved from BigQuery we need to perform some transformations.
 
-Firstly we remove the double spaces from the branch names, then due to
-the import not being a table in the source workbook there is extra rows
-that need to be filtered out, finally the data is unpivoted.
 
-| Branch | Attribute  | Value |
-|--------|------------|-------|
-| A      | Category 1 | 2     |
-| A      | Category 2 | 5     |
-| A      | Category 3 | 59    |
-| B      | Category 1 | 2     |
-| B      | Category 2 | 4     |
-| B      | Category 3 | 45    |
-| C      | Category 1 | 2     |
-| C      | Category 2 | 3     |
-| C      | Category 3 | 37    |
-| D      | Category 1 | 2     |
-| D      | Category 2 | 5     |
-| D      | Category 3 | 42    |
-| E      | Category 1 | 2     |
-| E      | Category 2 | 2     |
-| E      | Category 3 | 37    |
-
-Excel doesn't support BigQuery natively, so an ODBC driver is required
-to help harness the power of cloud computing within Excel, this is done
-using the Simba drivers (*ODBC and JDBC drivers for BigQuery*, no date).
-Once these are installed and configured, the data is imported to Excel
-via an ODBC SQL query.
-
-The two sources are then joined together using the branch and category
-columns, a custom column is added to check for equality.
-
-This is done twice, once with the Excel import as the left table, and
-once with the BigQuery import as the left table. By doing that it can be
-asserted that there is no extra branches or categories in either source.
-
-As the preview in Power Query only displays 1000 rows, these need to be
-loaded into Excel to validate the full data set of approximately 100,000
-rows.
-
-### Displaying Results to the User
-
-Looker Studio is being used to display the outputs of the query to the
-user to allow them to verify the impact of the chosen inputs.
 
 # Conclusion
 
