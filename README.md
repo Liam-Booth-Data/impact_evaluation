@@ -219,17 +219,17 @@ Now that the process and inner workings have been discussed, I will talk about h
 As I planned to store the model in unity catalog I first configured MLflow to use Unity Catalog for model registry operations.
 
 ```python
-
 import mlflow
 mlflow.set_registry_uri("databricks-uc")
 
 MODEL_NAME = "dev_core_500_semantic.ml_model.detectron2_report_errors"
 ```
 
-As I have already mentioned MLflow is helpful for experimentation tracking therefore I thought it'd be a waste not to use some of those capabilites. So I added the following code in to log the loss and validation loss. The detectron2 library is setup so that classes are used for training (DefaultTrainer). So to log loss you have to create your own hook classes that inherit of the HookBase class. The key parts to look at in the code belwo are the `mlflow.log_metric("loss", total_loss, step=iteration)` and `mlflow.log_metric("val_AP", val_ap, step=iteration)`. These both the loss and validation average precision respectively, to the MLflow experimentation run.
+The MODEL_NAME is also an important variable here. This variable will be used without as it tells databricks where I want to store my model and in future what model I want to use. Unity Catalog uses catalogs, schemas and lots of other things and you can read the MODEL_NAME file path as `catalog.schema.model_name`.
+
+The next step was to train the model. MLflow is helpful for experimentation tracking during training, therefore I thought it'd be a waste not to use some of those capabilites here. So I added the following code in to log the loss and validation loss. The detectron2 library is setup so that classes are used for training (DefaultTrainer). So to log loss you have to create your own hook classes that inherit of the HookBase class. The key parts to look at in the code belwo are the `mlflow.log_metric("loss", total_loss, step=iteration)` and `mlflow.log_metric("val_AP", val_ap, step=iteration)`. These both log the loss and validation average precision respectively, to the MLflow experimentation run.
 
 ```python
-
 class MLflowLoggerHook(HookBase);
     def __init__(self):
         super().__init__()
@@ -258,6 +258,78 @@ class ValidationLossHook(HookBase):
             val_ap = bbox_metrics["AP"]
             mlflow.log_metrics("val_AP", val_ap, step=self.trainer.iter)
 ```
+
+For the actually training part, databricks offers some nice functions like `mlflow.pytorch.log_model(` & `mlflow.pytorch.log_model(`, which stores the model in MLflow. But my case I will be using this function to store the model in Unity Catalog. For example:
+
+```python
+    mlflow.tensorflow.log_model(
+        model,
+        artifact_path="model",
+        input_example=example_input,
+        registered_model_name=MODEL_NAME
+    )
+```
+
+In the code above the MODEL_NAME, which is dev_core_500_semantic.ml_model.detectron2_report_errors, tells MLflow to store the model in Unity Catalog. So this is one of the more important functions in the training process.
+
+To look at the whole initial training code in one go, I will provide it below:
+
+```python
+def train_and_register_detectron2_model():
+    # starting a run in the experiment
+    with mlflow.start_run() as run:
+        print(f"Started run: {run.info.run_id}")
+
+        # detectron2 model configuration
+        cfg = get_cfg()
+        cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")) # the backbone model
+        cfg.DATASETS.TRAIN = ("my_dataset_train",)
+        cfg.DATASETS.TEST = ("my_dataset_val",)
+        cfg.DATALOADER.NUM_WORKERS = 2
+        cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml") # weights I am loading into the model
+        cfg.SOLVER.IMS_PER_BATCH = 2  
+        cfg.SOLVER.BASE_LR = 0.00025  # important for the optimization algorithm
+        cfg.SOLVER.MAX_ITER = 300  # important for where you want the model to 
+        cfg.SOLVER.STEPS = []
+        cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128   
+        cfg.MODEL.ROI_HEADS.NUM_CLASSES = 5  
+        cfg.MODEL.DEVICE = "cpu"
+        cfg.TEST.EVAL_PERIOD = 50 # Set this high to speed up training
+
+        os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+        trainer = DefaultTrainer(cfg) 
+        trainer.register_hooks([MLflowLoggerHook(), ValidationLossHook(cfg)])
+        trainer.resume_or_load(resume=False)
+        trainer.train()
+
+        model_state_dict = torch.load(os.path.join(cfg.OUTPUT_DIR, "model_final.pth"))
+        model = trainer.model # LOADING MODEL
+
+        model.eval() # SETTING MODEL TO EVALUATION MODE SO OUTPUT CAN BE USED IN SIGNATURE
+
+        example_input = torch.randn(3, 224, 224)
+        example_input_dict = [{"image": example_input}] # INPUT TO DETECTRON IS DICT DATA TYPE: "image": {image_data}
+        example_output = model(example_input_dict)
+
+        signature = infer_signature(example_input.numpy(), example_output[0]["instances"].get_fields()["pred_boxes"].tensor.detach().numpy()) # ALL MODELS IN UC NEED TO HAVE A SIGNATURE
+
+        model_path = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")
+
+        mlflow.pytorch.log_model(
+            pytorch_model=trainer.model,
+            artifact_path="model",
+            signature=signature,
+            registered_model_name=MODEL_NAME
+        )
+        print("Model logged to MLflow")
+    
+    return model
+
+train_and_register_detectron2_model()
+```
+
+The first important line in the preceding code is: `with mlflow.start_run() as run:`. This is important as it creates a new run within the experiment, and allows for metrics to be logged etc. All the cfg elements below this line belong directly to the detectron2 library. Here, `cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))` I'm loading the backbone of the model, and this saves a lot of time when it comes to setting up the model architecture and how a image will actually move through the network. To note RCNN stands for: Region-based Convolutional Neural Network. The next important line is: `cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")`. This is important as it loads the weights for the model backbone I just loaded, and these weights come from the pre-trained model. This again saves us a lot of time and compute, because to obtain these weights I would have to train the model on a set of very powerful GPUs, for a very long time. This is where transfer learning shines as I can now just use these weights from the pre-trained model, and just change a few to make model more specific to my object detection task. The next important lines are hyperparameters. Hyperparameters are model settings that are set my the machine learning practioner and are not optimized by the model during the training process. The first hyperparameter is the learning rate, `cfg.SOLVER.BASE_LR`, which I have already mentioned in the gradient descent algorithm therefore I will not repeat the importance of it. The value of 0.00025 for the LR, is the default the detectron2 recommends. The next hyperparameter is the maximum number of iterations: `cfg.SOLVER.MAX_ITER = 300`. This limits the model on how many epochs (runs through the data) the model can do. This can help massively in situations where your model starts to overfit your training data or where your model is has already converged (stabilized) but is still trying to find the best, most optimal weights possible which isn't feasible or sensible. The code lines after these are just for kicking the training off and setting up the details required for the model to be able to be stored within Unity Catalog.
+
 
 ### Preparing the Branches Import
 
