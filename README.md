@@ -402,11 +402,13 @@ plt.show()
 
 And the output of this was the following:
 
+{ADD IN THE error-report-2 IMAGE HERE}
 
+We can see that the model pickups all the objects we wanted to pick up. It predicted a probability of 95% that the error symbol was an error symbol, 94% for the logo, low 90%'s for the cards and then 97% for the table. For your information some of the data on this report and within the table has been removed with an AI eraser, therefore before the erasing there were quite a lot of features which made it obvious the table was an table. Overall, these are promising results and we further test this model by using it other images of reports it has not yet seen, but also using metrics like mAP (mean average precision).
 
+Mean Average Precision (mAP) is a good metric to use to evaluate object detection models as it combines precision and recall to provide a single score. To recap, precision is the ratio of true positive predictions to the total number of detections and it's purpose is to measure how many of the detected objects are actually correct. And the recall is the ratio of the true positive detections to the total number of actual objects with a purpose to show how many actual objects were detected. The average precision is calculated for each class by plotting the precision-recall curve and computing the area under the curve (AUC) which results in a single value summarizing the precision-recall trade-off for that class. Lastly, the mean average precision is the mean of the average precision values for all classses. So it provides an overall measure of the model's performance across all classes.
 
-
-
+Evaluating the mean average precision score is context driven, and in this case the model achieve a mAP of 0.9 (90%). This is a good score, and is good enough for this model to be incorporated into the data teams workflow.
 
 
 # Conclusion
