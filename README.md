@@ -331,214 +331,24 @@ train_and_register_detectron2_model()
 The first important line in the preceding code is: `with mlflow.start_run() as run:`. This is important as it creates a new run within the experiment, and allows for metrics to be logged etc. All the cfg elements below this line belong directly to the detectron2 library. Here, `cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))` I'm loading the backbone of the model, and this saves a lot of time when it comes to setting up the model architecture and how a image will actually move through the network. To note RCNN stands for: Region-based Convolutional Neural Network. The next important line is: `cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")`. This is important as it loads the weights for the model backbone I just loaded, and these weights come from the pre-trained model. This again saves us a lot of time and compute, because to obtain these weights I would have to train the model on a set of very powerful GPUs, for a very long time. This is where transfer learning shines as I can now just use these weights from the pre-trained model, and just change a few to make model more specific to my object detection task. The next important lines are hyperparameters. Hyperparameters are model settings that are set my the machine learning practioner and are not optimized by the model during the training process. The first hyperparameter is the learning rate, `cfg.SOLVER.BASE_LR`, which I have already mentioned in the gradient descent algorithm therefore I will not repeat the importance of it. The value of 0.00025 for the LR, is the default the detectron2 recommends. The next hyperparameter is the maximum number of iterations: `cfg.SOLVER.MAX_ITER = 300`. This limits the model on how many epochs (runs through the data) the model can do. This can help massively in situations where your model starts to overfit your training data or where your model is has already converged (stabilized) but is still trying to find the best, most optimal weights possible which isn't feasible or sensible. The code lines after these are just for kicking the training off and setting up the details required for the model to be able to be stored within Unity Catalog.
 
 
-### Preparing the Branches Import
+## Evaluating the model outputs and doing inference
 
-As with the controls table, a view is created over the top of the
-branches data that is ingested from Google sheets.
+In the preceding section, I talked about how the model was trained. Here in this section I will talk about how the model was evaluated and used in for prediction (inference). So after a model has finished training its run is logged into the experiment is was apart of, within the MLflow section in databricks. This looks like the following:
 
-The first step in this view is to construct a CTE that includes a branch
-key, and location id for the branches. This data comes from the managed
-data warehouse that contains application data.
+![MLflow run](screenshots/mlflow-run.png)
 
-Some light cleaning needs to be done on the branch column, as some
-branches have double spaces.
+Here you can see the different metrics in a line graph plotted against the number of epochs the model was trained for. The colours also represent the different runs. Being able to see these metrics visually and being able to compare the different runs like this, makes life as a machine learning practioner alot easier. I would say to add on this it would be good to be able to see the metrics for one run, on just one graph. I say this because this would then represent a learning curve graph, which is very useful for evaluating whether a model converged during training and whether it overfitted the training data. For example this is what I could plot to show this information for one run:
 
-```sql
-with branches as (
-    select branches.branchid,
-           branches.branchkey,
-           -- Some store names have double spaces, the replace is to trim those to havinbg one space. 
-    replace(branches.branch_name,"  "," ") as branch,
-    lblo.locationid
-    from `branches`
-    inner join `lblo` using(branchid))
+![Learning Curve Graph](screenshots/cbb214f8.png)
 
-select * from branches
-```
+In the above graph we can see that the model likely converged during training. This means that if I was to continue training the model not a lot of benefit would be seen in terms of error decreased. However it also shows that the model heavily overfit the training data. This is because as the error kept decreasing on the training data, it did not for the validation data. This means that the model started to overfit to the training data. With this model we would expect to get a really low performance scores a test set, due to it's poor generalization (high variance) that has been created during training.
 
+The next important output of the training process, is the storing of the model within Unity Catalog. In the picture below we can see how when the training process is rerun, MLflow just adds another verion to that model.
 
-The next step in this view is to clean and deduplicate the data from the
-google sheet. Double spaces are removed from the branch column, data
-types are established for the columns.
-
-To clean this further, there is a predicate that specifies only rows
-containing a value in the branch column will be returned. Then to
-deduplicate the data we're using the group by clause to aggregate the
-data, then excluding any rows using the having filter to return only
-rows where the occurrence is equal to 1 (Gupta, 2019).
-
-```sql
-with google_sheet as 
-(
-    select replace(branch,"  ", " ") as branch,
-           sum(cast(cabinet_meterage as numeric)) as cabinet_meterage,
-           sum(cast(shelf_count as numeric)) as shop_floor_shelf_count,
-           cast(max(treat_as_new) as bool) as treat_as_new
-    from `autocaps.gsheet_branches`
-    where branch is not null
-    group by branch
-    having count(branch) = 1
-)
-select * from google_sheet
-```
-
-| branch | cabinet_meterage | shelf_count | treat_as_new |
-|--------|------------------|-------------|--------------|
-| A      | 11.04            | 203         | FALSE        |
-| B      | 9.08             | 251         | FALSE        |
-| C      | 6.32             | 245         | TRUE         |
-| D      | 9.08             | 264         | FALSE        |
-| E      | 11.84            | 630         | FALSE        |
-
-We then bring the category location field from the category types table.
-
-```sql
-with category_types as (
-    select category,
-           category_location
-    from `autocaps.gsheet_category_types`
-)
-select * from category_types
-```
-| category | category_location |
-|----------|-------------------|
-| 1        | cabinet           |
-| 2        | cabinet           |
-| 101      | floor             |
-
-These three CTEs are joined together to provide a reference that we can
-start applying some business logic to.
-
-```sql
-with filtered_branches as (
-    select branches.branchkey,
-           branches.locationid,
-           branches.branch,
-           google_sheet.cabinet_meterage,
-           google_sheet.treat_as_new
-    from branches
-        -- We're doing an inner join to exclude any stores not filtered by previous steps.
-        -- Bigquery is case sensitive, so the join is done using the lower() function
-    inner join google_sheet on lower(branches.branch) = lower(google_sheet.branch)
-)
-select * from filtered_branches
-```
-| branchkey | branchid | locationid | branch | cabinet_meterage | shop_floor_shelf_count | treat_as_new |
-|-----------|----------|------------|--------|------------------|------------------------|--------------|
-| AA        | 1        | 1001       | A      | 10.46            | 256                    | FALSE        |
-| BB        | 2        | 1003       | B      | 10.46            | 405                    | FALSE        |
-| CC        | 3        | 1005       | C      | 6.32             | 195                    | TRUE         |
-| DD        | 4        | 1007       | D      | 8.5              | 305                    | FALSE        |
-
-
-The final select of this view returns an output that joins three index
-keys in front of the branch name, alongside the imported variables from
-the Google sheet, and finally creates two calculated columns using
-nested sub queries of a prior CTE.
-
-```sql
-select branchkey,
-       branchid,
-       locationid,
-       branch,
-       cabinet_meterage,
-       shop_floor_shelf_count,
-       treat_as_new,
-       safe_divide(cabinet_meterage,(select safe_divide(sum(cabinet_meterage),count(*)) from filtered_branches)) as cabinet_multiplier,
-       safe_divide(shop_floor_shelf_count,(select safe_divide(sum(shop_floor_shelf_count),count(*)) from filtered_branches)) as media_multiplier
-       from filtered_branches
-```
-
-| branchkey | branchid | locationid | branch | cabinet_meterage | shop_floor_shelf_count | treat_as_new | cabinet_multiplier | media_multiplier |
-|-----------|----------|------------|--------|------------------|------------------------|--------------|--------------------|------------------|
-| AA        | 1        | 1001       | A      | 10.46            | 256                    | FALSE        | 0.9                | 0.85             |
-| BB        | 2        | 1003       | B      | 10.46            | 405                    | FALSE        | 1.29               | 0.960            |
-| CC        | 3        | 1005       | C      | 6.32             | 195                    | TRUE         | 0.95               | 1.250            |
-| DD        | 4        | 1007       | D      | 8.5              | 305                    | FALSE        | 0.79               | 1.410            |
-
-### Applying Business Logic
-
-The business logic is applied through two further views, the first view
-aggregates the total stock figures on a category level, then performs
-calculations using the user inputs.
-
-The user inputs are pivoted from a row to a columnar structure.
-```sql
-    parameters_pivot as (
-        select cast(minimum_capacity_percentage as numeric) as minimum_capacity_percentage,
-               cast(maximum_capacity_percentage as numeric) as maximum_capacity_percentage,
-               cast(capacity_buffer_percentage as numeric) as capacity_buffer_percentage
-        from (select attribute,value from `autocaps.stg_controls`)
-        pivot(max(value) for attribute in ('minimum_capacity_percentage','maximum_capacity_percentage','capacity_buffer_percentage'))
-)
-```
-| minimum_capacity_percentage | maximum_capacity_percentage | capacity_buffer_percentage |
-|-----------------------------|-----------------------------|----------------------------|
-| 0.15                        | 2.6                         | 0.1                        |
+![UC Model](screenshots/uc-model.png)
 
 
 
-The stock quantities are then aggregated and a cross join is performed.
-
-```sql
-    aio_stock as (
-        select  category_id,
-                box_category,
-                category_location,
-                supercat,
-                sum(stock_quantity) as total_stock
-        from `autocaps.stg_aio_data`
-        group by category_id, box_category, category_location, supercat),
-    stock as (
-        select category_id,
-               box_category,
-               supercat,
-               category_location,
-               total_stock,
-               minimum_capacity_percentage,
-               maximum_capacity_percentage,
-               capacity_buffer_percentage
-        from aio_stock
-        cross join parameters_pivot
-)
-```
-
-A count of the branches is also
-imported.
-```sql
-branches as (select count(*) as branch_count from `autocaps.stg_branches_cabinets`)
-```
-
-The final select of this view uses the stock information, user inputs
-and count of branches to perform calculations, which can then be used in
-subsequent steps.
-
-A table of ratios is calculated also, using similar steps where the user
-inputs are imported, pivoted, and cross joined against transactional
-data.
-
-### Bringing it all Together
-
-The final stage of the pipeline is a view that ties all of the prior
-steps together, it utilises a similar structure to the previous queries
-by utilising a selection of CTEs, joins and a final application of
-business logic.
-
-The view can then be used in user facing tools, where the user needs
-dynamic feedback after the inputs are changed.
-
-A scheduled task is also created to take a snapshot at midnight daily
-and store it in a table, this allows for lower overheads when displaying
-the data to users that don't need to change the inputs. The table also
-provides a stable source for reverse ETL pipelines, which is a process
-where business logic is applied to data, then the results are fed back
-into the application databases (*9. Serving Data for Analytics, Machine
-Learning, and Reverse ETL*, no date).
-
-### Validating the Outputs
-
-As this is a translation of an existing Excel tool, the data can be
-validated against that.
 
 The data is first imported to Excel using the get data from other
 workbook feature of Power Query
