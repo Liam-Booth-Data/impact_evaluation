@@ -415,60 +415,23 @@ Evaluating the mean average precision score is context driven, and in this case 
 
 ## Outline
 
-The creation of this pipeline was an exercise in reducing the toil of a
-task performed through an Excel tool. The tool is rather complex
-requiring the user to have a powerful local machine, and be aware of the
-nuances for importing the transactional data.
+The creation of this model was an exercise in applying the key foundations of any data system or machine learning system, autonomy. Without this model, a task which could be autonomised is now manual, meaning develops on the data team have less free time to create and improve heir current products in which they offer.
 
-This means that the task falls upon one member within the department,
-creating a bottleneck when the task needs to be completed. To open up
-this task to be performed by other members within the team a cloud first
-approach was taken.
+Having a model which is served up within databricks and is easily accessible allows development processes to be coded that take advantage of this.
 
-Having an existing tool helped in establishing the structure of the
-output required, along with the data sources needed.
+Knowing the underlying architectutre of various poopular CV (computer vision) models & reading developer documentation on specific packages like detectron2 allowed me to know what to expect in terms of quality of models predictions, how much data is required for good performance but also some of the limitations/difficulities of these neural networks like vanishing gradients etc.
 
-Validation was done throughout the steps of the pipeline, some issues
-were identified and remedied. Most notably the conversion of data types
-from a floating point value where the calculations were being performed
-on an approximation and fractional basis to a numeric datatype for
-increased precision (*Data types \| BigQuery*, no date).
+Validation was done within and after training. During training validation highlighted any overfitting or underfitting, and after training helped with an assessment of the quality of the models predictions.
 
-Looker Studio was chosen to display the outputs to the user, this
-decision was based on the ease of permissions management, deep
-integration with the Google ecosystem, and familiar user interface (*The
-next evolution of Looker, your unified business intelligence platform*,
-no date).
-
-While the dynamic view at the end of the pipeline could have been used
-as a source for reverse ETL, it was decided that a daily snapshot table
-would be more reliable.
+Unity Catalog was the chosen place where the model would be stored and accessed with model serving. The model is accessible to all data team members for inference, and storing/serving the model in UC stopped the bad developer pratice of passing around model files to load the model for each developer seperately.
 
 ## Considerations
 
-The pipeline is rather complex, to the point where limits were being hit
-for sub queries.
+As more reports get added, the input data to this model may shift. This is a common problem in ML for production however if MLOps has been done well, then a simple retrain with new data (i.e. pictures of reports now in Tableau, PowerBI Mobile etc) would suffice to fix this problem. 
 
-Some refactoring resolved this, but the trade-off was the loss of
-flexibility. For example there is a few steps where views could be
-replaced with table-valued functions which behave similarly, but allow
-for parameters to be passed as a variable to use (*Table functions \|
-BigQuery \| Google Cloud*, no date).
+Future work on containerization of the model and it's repsective dependenicies is defintely considered, to bring the model outside of the databricks environment and into other services like Azure etc. Deploying this model to edge devices like mobiles is also a possible task in the future.
 
-A solution to reduce some complexity of the dynamic queries would be to
-identify which stages of the pipeline could be converted to snapshots.
-Importing and aggregating the transactional data on a weekly basis would
-vastly reduce the resources used.
-
-The SQL was written in the BigQuery web interface, which is great for
-ad-hoc queries, but isn't entirely suited for writing pipelines. Using a
-tool that is suited for this process would be more effective for
-managing the version history of the queries, along with easy generation
-of data lineage diagrams.
-
-My choice for this would be dbt (data build tool), a command line tool
-designed to enable transformation of data more efficiently (*What,
-exactly, is dbt?*, no date).
+Some other things like hyperparameter optimization and training dataset size evaluation could also be completed. Learning curves could be plotted for different training dataset sizes to see how dataset size impacts the model when learning. Also using packages like Optuna I would be able to optimize a few of the hyperparamets like the learning rate, maximum number of iterations, batch size and so on.
 
 #  Bibliography
 
