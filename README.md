@@ -338,7 +338,6 @@ cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "/output/model_final.pth")  # p
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7   # set a custom testing threshold
 predictor = DefaultPredictor(cfg)
 ```
-{UPDATE THE PATH FOR THE MODEL WEIGHTS AS THAT IS OUT OF DATE}
 
 The main takeaways from the above code are the reinitilization of the cfg object, the loading of the model weights and setting a custom threshold. The cfg object is reinitialized with the same model backbone here as this cell maybe be run independently within this notebook therefore I want to make sure no errors appear due to no initialization of the cfg object. The setting of the model weights is also important as these weights contain some which have been opitimized during the training process for this specific object detection task. The weights are all stored within the .pth file. Lastly, the setting of the custom threshold is important as if there was no threshold then we would see a lot more preditions of where the model thought objects would be within the image. However these predictions would have a small probability of being true, therefore I just want to focus on the predictions which the model is pretty confident in. That is why the threshold is set to 70%.
 
