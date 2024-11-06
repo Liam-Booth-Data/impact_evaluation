@@ -28,52 +28,14 @@ So overall, the model just needs to be closely monitored during its early phase 
 In conclusion, this AI/ML project has had a significant positive impact on our company's reporting standards and the teams effiency, allowing for increased workloads and better handling of a large amount of business reports. Though, it has been noted that if errors are not picked up by the productionised model then extensive work should be put in place to discover why.
 
 ##  Bibliography
-Google AppSheet | Build apps with no code (no date) AppSheet. Available at: https://about.appsheet.com/home/
-ChatGPT (OpenAI) assisted in content restructuring. Available at: https://www.openai.com/research/chatgpt
 
-
+<span style="color:red">!TODO</span>
 
 # Original Documentation
 
 # Contents
 
-[Introduction](#introduction)
-
-[Project Summary](#project-summary)
-
-[Issue at Hand](#issue-at-hand)
-
-[Solution](#solution)
-
-[Outcome](#outcome)
-
-[Pipeline Overview](#pipeline-overview)
-
-[A High Level Look at the Pipeline](#a-high-level-look-at-the-pipeline)
-
-[A Deeper Dive Into the Pipeline](#_Toc124888952)
-
-[Desired Output Structure](#desired-output-structure)
-
-[Ingesting Data from Google Sheets](#ingesting-data-from-google-sheets)
-
-[Preparing the Branches Import](#preparing-the-branches-import)
-
-[Applying Business Logic](#applying-business-logic)
-
-[Bringing it all Together](#bringing-it-all-together)
-
-[Validating the Outputs](#validating-the-outputs)
-
-[Displaying Results to the User](#displaying-results-to-the-user)
-
-[Conclusion](#conclusion)
-
-[Outline](#outline)
-
-[Considerations](#considerations)
-
-[Bibliography](#bibliography)
+<span style="color:red">!TODO</span>
 
 
 # Project Background
@@ -410,7 +372,6 @@ Mean Average Precision (mAP) is a good metric to use to evaluate object detectio
 
 Evaluating the mean average precision score is context driven, and in this case the model achieve a mAP of 0.9 (90%). This is a good score, and is good enough for this model to be incorporated into the data teams workflow.
 
-
 # Conclusion
 
 ## Outline
@@ -435,74 +396,4 @@ Some other things like hyperparameter optimization and training dataset size eva
 
 #  Bibliography
 
-*2. The Data Engineering Lifecycle* (no date). Available at:
-https://learning.oreilly.com/library/view/fundamentals-of-data/9781098108298/ch02.html
-(Accessed: 9 January 2023).
-
-*9. Serving Data for Analytics, Machine Learning, and Reverse ETL* (no
-date). Available at:
-https://learning.oreilly.com/library/view/fundamentals-of-data/9781098108298/ch09.html
-(Accessed: 17 January 2023).
-
-*Announcing Google Workspace, everything you need to get it done, in one
-location* (no date) *Google Workspace Blog*. Available at:
-https://workspace.google.com/blog/product-announcements/introducing-google-workspace
-(Accessed: 18 November 2022).
-
-*Cloud Computing Services* (no date) *Google Cloud*. Available at:
-https://cloud.google.com/ (Accessed: 18 November 2022).
-
-*Data types \| BigQuery* (no date) *Google Cloud*. Available at:
-https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types
-(Accessed: 14 January 2023).
-
-Garza, N. (2020) *Planograms 101: What They Are and Why They're
-Important for Your Brand*, *ePac Flexible Packaging*. Available at:
-https://epacflexibles.com/planograms-101-what-they-are-and-why-theyre-important-for-your-brand/
-(Accessed: 21 November 2022).
-
-Gupta, R. (2019) 'Different ways to SQL delete duplicate rows from a SQL
-Table', *SQL Shack - articles about database auditing, server
-performance, data recovery, and more*, 30 August. Available at:
-https://www.sqlshack.com/different-ways-to-sql-delete-duplicate-rows-from-a-sql-table/
-(Accessed: 9 January 2023).
-
-*Introduction to external data sources \| BigQuery \| Google Cloud* (no
-date). Available at:
-https://cloud.google.com/bigquery/docs/external-data-sources (Accessed:
-21 November 2022).
-
-*ISO - ISO 8601 --- Date and time format* (no date) *ISO*. Available at:
-https://www.iso.org/iso-8601-date-and-time-format.html (Accessed: 14
-January 2023).
-
-*ODBC and JDBC drivers for BigQuery* (no date) *Google Cloud*. Available
-at: https://cloud.google.com/bigquery/docs/reference/odbc-jdbc-drivers
-(Accessed: 12 January 2023).
-
-Sanchez-Ayala, M. (2020) 'Data Modeling: The Star Schema', *Medium*, 8
-April. Available at:
-https://medium.com/@marcosanchezayala/data-modeling-the-star-schema-c37e7652e206
-(Accessed: 14 January 2023).
-
-*Table functions \| BigQuery \| Google Cloud* (no date). Available at:
-https://cloud.google.com/bigquery/docs/reference/standard-sql/table-functions
-(Accessed: 14 January 2023).
-
-*The next evolution of Looker, your unified business intelligence
-platform* (no date) *Google Cloud Blog*. Available at:
-https://cloud.google.com/blog/products/data-analytics/looker-next-evolution-business-intelligence-data-studio
-(Accessed: 18 November 2022).
-
-*The Rise and Fall of the OLAP Cube* (2020) *The Holistics Blog*.
-Available at:
-https://www.holistics.io/blog/the-rise-and-fall-of-the-olap-cube/
-(Accessed: 14 January 2023).
-
-*What, exactly, is dbt?* (no date) *Transform data in your warehouse*.
-Available at: https://www.getdbt.com/blog/what-exactly-is-dbt/
-(Accessed: 16 January 2023).
-
-*What is BigQuery?* (no date) *Google Cloud*. Available at:
-https://cloud.google.com/bigquery/docs/introduction (Accessed: 18
-November 2022).
+<span style="color:red">!TODO</span>
