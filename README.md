@@ -29,6 +29,10 @@ In conclusion, this AI/ML project has had a significant positive impact on our c
 
 Also the project allows us to answer hypotheses on this topic easier too, for example using this deep learning model I could prove/disapprove hypotheses like: The occurrence of visual errors in Power BI reports is significantly influenced by the complexity of the report design, the volume of data processed, and the frequency of updates to the underlying data sources.
 
+## Ethics, bias, privacy, legal, regulatory obligatons
+
+This is important as I need to make sure I adhere to any legal obligations that may be apparent within this project. Going along the list starting with ethics, this has already been addressed as all data has been anoymized to adhere to company policies on company data. Next, bias. This could be apparent due to the dataset size and the dataset contents. As you will later see a smaller dataset could be used in this instance due to the use of transfer learning, however the dataset contents are of more concern in this project. This is because the images collected for this project were only from a few reports, therefore the data is likely to be somewhat bias. This bias effect can be decreased/solved by increasing the number of reports I collect images for. Lastly for privacy, legal and regulatory obligations, it's in an identicial position to the ethics for this project. This is because all data within this project has been anoymized and all company and data wide policies have been adhered to. 
+
 ##  Bibliography
 
 <span style="color:red">!TODO</span>
