@@ -27,6 +27,8 @@ So overall, the model just needs to be closely monitored during its early phase 
 
 In conclusion, this AI/ML project has had a significant positive impact on our company's reporting standards and the teams effiency, allowing for increased workloads and better handling of a large amount of business reports. Though, it has been noted that if errors are not picked up by the productionised model then extensive work should be put in place to discover why.
 
+The project allows us to answer hypotheses on this topic easier too, for example using this deep learning model I could prove/disapprove hypotheses like: The occurrence of visual errors in Power BI reports is significantly influenced by the complexity of the report design, the volume of data processed, and the frequency of updates to the underlying data sources.
+
 ##  Bibliography
 
 <span style="color:red">!TODO</span>
