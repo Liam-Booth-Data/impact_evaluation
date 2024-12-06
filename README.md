@@ -369,7 +369,7 @@ plt.show()
 
 And the output of this was the following:
 
-{ADD IN THE error-report-2 IMAGE HERE}
+![error-report-2](screenshots/error-report-2.png)
 
 We can see that the model pickups all the objects we wanted to pick up. It predicted a probability of 95% that the error symbol was an error symbol, 94% for the logo, low 90%'s for the cards and then 97% for the table. For your information some of the data on this report and within the table has been removed with an AI eraser, therefore before the erasing there were quite a lot of features which made it obvious the table was an table. Overall, these are promising results and we further test this model by using it other images of reports it has not yet seen, but also using metrics like mAP (mean average precision).
 
