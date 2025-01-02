@@ -404,5 +404,7 @@ Some other things like hyperparameter optimization and training dataset size eva
 #  References
 
 O'Shea, K. and Nash, R. (2015). An Introduction to Convolutional Neural Networks.
+
 Rumelhart, D.E., Hinton, G.E. and Williams, R.J. (1986). Learning representations by back-propagating errors.
+
 Salman, S. and Liu, X. (2019). Overfitting Mechanism and Avoidance in Deep Neural Networks.
