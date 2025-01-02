@@ -33,16 +33,18 @@ Also the project allows us to answer hypotheses on this topic easier too, for ex
 
 This is important as I need to make sure I adhere to any legal obligations that may be apparent within this project. Going along the list starting with ethics, this has already been addressed as all data has been anoymized to adhere to company policies on company data. Next, bias. This could be apparent due to the dataset size and the dataset contents. As you will later see a smaller dataset could be used in this instance due to the use of transfer learning, however the dataset contents are of more concern in this project. This is because the images collected for this project were only from a few reports, therefore the data is likely to be somewhat bias. This bias effect can be decreased/solved by increasing the number of reports I collect images for. Lastly for privacy, legal and regulatory obligations, it's in an identicial position to the ethics for this project. This is because all data within this project has been anoymized and all company and data wide policies have been adhered to. 
 
-##  Bibliography
-
-<span style="color:red">!TODO</span>
 
 # Original Documentation
 
 # Contents
 
-<span style="color:red">!TODO</span>
-
+- Project Background
+- Project Summary
+- Neural Network/Process Overview
+- A Deeper Dive into the Neural Network Process
+- How the process was implemented
+- Conclusion
+- References
 
 # Project Background
 
@@ -399,6 +401,5 @@ Future work on containerization of the model and it's repsective dependenicies i
 
 Some other things like hyperparameter optimization and training dataset size evaluation could also be completed. Learning curves could be plotted for different training dataset sizes to see how dataset size impacts the model when learning. Also using packages like Optuna I would be able to optimize a few of the hyperparamets like the learning rate, maximum number of iterations, batch size and so on.
 
-#  Bibliography
+#  References
 
-<span style="color:red">!TODO</span>
