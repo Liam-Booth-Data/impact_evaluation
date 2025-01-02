@@ -156,7 +156,7 @@ After the loss has then been calculated, it is used in a backward pass of the mo
 
 ![Chain rule](screenshots/chain-rule.png)
 
-The output here is the gradients for each weight, which indicates how much each weight contributed to the total error.
+The output here is the gradients for each weight, which indicates how much each weight contributed to the total error (Rumelhart, Hinton and Williams, 1986).
 
 The last stage is to use a optimization algorithm like Stochastic Gradient Descent (SGD), to update the weights using the gradients of each weight we just calculated. The equation for this process is below:
 
@@ -404,3 +404,4 @@ Some other things like hyperparameter optimization and training dataset size eva
 #  References
 
 O'Shea, K. and Nash, R. (2015). An Introduction to Convolutional Neural Networks.
+Rumelhart, D.E., Hinton, G.E. and Williams, R.J. (1986). Learning representations by back-propagating errors.
