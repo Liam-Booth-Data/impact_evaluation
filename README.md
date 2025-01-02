@@ -136,7 +136,7 @@ The convolutional neural network were first introduced in the late 1980s and ear
 
 ![CNN diagram](screenshots/cnn-diagram.jpeg)
 
-To stick to the key processes within that image, we can see that there is a small grey dotted-line box within each layer. This box is called a kernel (or filter) and is used within each layer of the network to detect the features (like the edges, textures, patterns). This kernel slides over the images and produces feature maps that contain the information of the features within the image. Feature maps are usually passed into the next layer so that they can be filtered by a kernel again to extract more complex feautres.
+To stick to the key processes within that image, we can see that there is a small grey dotted-line box within each layer. This box is called a kernel (or filter) and is used within each layer of the network to detect the features (like the edges, textures, patterns). This kernel slides over the images and produces feature maps that contain the information of the features within the image. Feature maps are usually passed into the next layer so that they can be filtered by a kernel again to extract more complex feautres (O'Shea and Nash, 2015).
 
 The pooling layers you can see are there are to reduce the spaital dimensions (height and width) of the feature maps. This prevents the model from overfitting on the training data, and to also improve computational effiency as there is less data to process.
 
@@ -403,3 +403,4 @@ Some other things like hyperparameter optimization and training dataset size eva
 
 #  References
 
+O'Shea, K. and Nash, R. (2015). An Introduction to Convolutional Neural Networks.
